@@ -1,0 +1,17 @@
+{"name":"hexo","hostname":"PengT","pid":24700,"level":20,"msg":"Hexo version: \u001b[35m3.5.0\u001b[39m","time":"2018-03-12T16:25:39.539Z","v":0}
+{"name":"hexo","hostname":"PengT","pid":24700,"level":20,"msg":"Working directory: \u001b[35mF:\\Blog\\hexo\\\u001b[39m","time":"2018-03-12T16:25:39.542Z","v":0}
+{"name":"hexo","hostname":"PengT","pid":24700,"level":20,"msg":"Config loaded: \u001b[35mF:\\Blog\\hexo\\_config.yml\u001b[39m","time":"2018-03-12T16:25:39.715Z","v":0}
+{"name":"hexo","hostname":"PengT","pid":24700,"level":20,"msg":"Plugin loaded: \u001b[35mhexo-deployer-git\u001b[39m","time":"2018-03-12T16:25:39.770Z","v":0}
+{"name":"hexo","hostname":"PengT","pid":24700,"level":20,"msg":"Plugin loaded: \u001b[35mhexo-generator-archive\u001b[39m","time":"2018-03-12T16:25:39.780Z","v":0}
+{"name":"hexo","hostname":"PengT","pid":24700,"level":20,"msg":"Plugin loaded: \u001b[35mhexo-generator-category\u001b[39m","time":"2018-03-12T16:25:39.784Z","v":0}
+{"name":"hexo","hostname":"PengT","pid":24700,"level":20,"msg":"Plugin loaded: \u001b[35mhexo-generator-index\u001b[39m","time":"2018-03-12T16:25:39.789Z","v":0}
+{"name":"hexo","hostname":"PengT","pid":24700,"level":20,"msg":"Plugin loaded: \u001b[35mhexo-generator-tag\u001b[39m","time":"2018-03-12T16:25:39.793Z","v":0}
+{"name":"hexo","hostname":"PengT","pid":24700,"level":20,"msg":"Plugin loaded: \u001b[35mhexo-renderer-ejs\u001b[39m","time":"2018-03-12T16:25:39.800Z","v":0}
+{"name":"hexo","hostname":"PengT","pid":24700,"level":20,"msg":"Plugin loaded: \u001b[35mhexo-renderer-marked\u001b[39m","time":"2018-03-12T16:25:39.812Z","v":0}
+{"name":"hexo","hostname":"PengT","pid":24700,"level":20,"msg":"Plugin loaded: \u001b[35mhexo-renderer-stylus\u001b[39m","time":"2018-03-12T16:25:39.816Z","v":0}
+{"name":"hexo","hostname":"PengT","pid":24700,"level":20,"msg":"Plugin loaded: \u001b[35mhexo-server\u001b[39m","time":"2018-03-12T16:25:39.943Z","v":0}
+{"name":"hexo","hostname":"PengT","pid":24700,"level":20,"msg":"Script loaded: \u001b[35mthemes\\next\\scripts\\tags\\group-pictures.js\u001b[39m","time":"2018-03-12T16:25:39.952Z","v":0}
+{"name":"hexo","hostname":"PengT","pid":24700,"level":20,"msg":"Script loaded: \u001b[35mthemes\\next\\scripts\\tags\\full-image.js\u001b[39m","time":"2018-03-12T16:25:39.954Z","v":0}
+{"name":"hexo","hostname":"PengT","pid":24700,"level":20,"msg":"Script loaded: \u001b[35mthemes\\next\\scripts\\tags\\center-quote.js\u001b[39m","time":"2018-03-12T16:25:39.956Z","v":0}
+{"name":"hexo","hostname":"PengT","pid":24700,"level":20,"msg":"Script loaded: \u001b[35mthemes\\next\\scripts\\merge-configs.js\u001b[39m","time":"2018-03-12T16:25:39.957Z","v":0}
+{"name":"hexo","hostname":"PengT","pid":24700,"level":20,"msg":"Database saved","time":"2018-03-12T16:25:39.969Z","v":0}
