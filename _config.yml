@@ -80,3 +80,10 @@ leancloud_visitors:
   enable: true
   app_id: dGwD3xOiyFcpFpFJljXxGgdo-gzGzoHsz
   app_key: a1WmNYloOsJQORnHA9XKnaiC
+
+
+# site map
+sitemap:
+path: sitemap.xml
+baidusitemap:
+path: baidusitemap.xml
