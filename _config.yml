@@ -13,7 +13,7 @@ avatar: /uploads/avatar.jpg
 
 # URL
 ## If your site is put in a subdirectory, set url as 'http://yoursite.com/child' and root as '/child/'
-url: http://yoursite.com
+url: http://chenpt.cc
 root: /
 permalink: :title/
 permalink_defaults:
@@ -82,3 +82,9 @@ leancloud_visitors:
   app_key: a1WmNYloOsJQORnHA9XKnaiC
 
 
+# site map
+sitemap:
+  path: sitemap.xml
+baidusitemap:
+  path: baidusitemap.xml
+    
