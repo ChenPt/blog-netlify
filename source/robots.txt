@@ -1,0 +1,4 @@
+User-agent: *
+
+Sitemap: https://chenpt.cc/sitemap.xml
+Sitemap: http://chenpt.cc/baidusitemap.xml
