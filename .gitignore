@@ -3,3 +3,4 @@
 /.deploy_git
 /.vscode
 db.json
+debug.log
