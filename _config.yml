@@ -83,6 +83,10 @@ leancloud_visitors:
 
 
 # site map
+Plugins:
+- hexo-generator-baidu-sitemap
+- hexo-generator-sitemap
+
 sitemap:
   path: sitemap.xml
 baidusitemap:
