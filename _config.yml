@@ -84,6 +84,6 @@ leancloud_visitors:
 
 # site map
 sitemap:
-path: sitemap.xml
+  path: sitemap.xml
 baidusitemap:
-path: baidusitemap.xml
+  path: baidusitemap.xml
