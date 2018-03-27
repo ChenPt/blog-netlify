@@ -4,3 +4,4 @@
 /.vscode
 db.json
 debug.log
+package-lock.json
