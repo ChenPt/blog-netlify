@@ -82,12 +82,3 @@ leancloud_visitors:
   app_key: a1WmNYloOsJQORnHA9XKnaiC
 
 
-# site map
-Plugins:
-- hexo-generator-baidu-sitemap
-- hexo-generator-sitemap
-
-sitemap:
-  path: sitemap.xml
-baidusitemap:
-  path: baidusitemap.xml
