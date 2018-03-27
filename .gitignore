@@ -2,5 +2,3 @@
 /public
 /.deploy_git
 /.vscode
-package-lock
-package-lock.json
