@@ -1,4 +1,13 @@
 User-agent: *
+Allow: /
+Allow: /archives/
 
-Sitemap: http://chenpt.cc/sitemap.xml
-Sitemap: http://chenpt.cc/baidusitemap.xml
+Disallow: /vendors/
+Disallow: /js/
+Disallow: /css/
+Disallow: /fonts/
+Disallow: /vendors/
+Disallow: /fancybox/
+
+Sitemap: https://chenpt.cc/sitemap.xml
+Sitemap: https://chenpt.cc/baidusitemap.xml
