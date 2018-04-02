@@ -134,7 +134,7 @@ font:
 # Value is the target link (E.g. GitHub: https://github.com/iissnan)
 social:
   GitHub: https://github.com/ChenPt
-  Email: cptlove82@gmail.com
+  Email: mailto:cptlove82@gmail.com
 
 # Social Links Icons
 # Icon Mapping:
@@ -148,7 +148,7 @@ social_icons:
   GitHub: github
   Twitter: twitter
   Weibo: weibo
-  Email: email
+  Email: envelope
 
 
 # Sidebar Avatar
