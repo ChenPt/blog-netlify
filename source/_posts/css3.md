@@ -1,0 +1,176 @@
+---
+title: css3知识整理
+date: 2018-04-10
+category: CSS
+tags: [CSS, 伪元素, transition, transform]
+---
+
+对于CSS伪元素的一个整理
+<!-- more -->
+
+## 伪元素 & 伪类
+之前开始学习CSS的时候，会把伪类和伪元素搞混，其实现在想想，两者的区别还是挺大的。
+
+伪类： 根据元素的状态或特征来筛选出元素，并添加特定的样式。
+
+
+如 link, visited, hover,active, focus, first-child， :nth-child(参数), :not(参数)等等
+
+`lang`是向带有指定lang属性的元素添加样式
+``` html 
+<p lang="test">word text</p>
+
+p:lang(test) {
+    color: green;
+}
+```
+
+伪元素： 为存在于DOM上的某个元素进行补充。**伪元素是不存在于文档树中的。**
+
+因为某些低版本浏览器识别不了两个冒号的伪元素，为了兼容所以有些伪元素是既可以写一个冒号，也可以写两个冒号，不过有些伪元素是只能写两个冒号。
+
+整理如下表格
+
+<style>
+table th:first-of-type {
+    width: 200px;
+}
+</style>
+                伪元素 |     描述
+--------------------------------|---------------
+ ::before/:before          | 在某个元素前面补充
+ ::after/:after            | 在某个元素后面补充
+ ::first-line/:first-line  | 选中块级元素的第一行
+ ::firse-letter/:first-letter| 选中块级元素的第一行的第一个字母
+ ::selection               |  应用于文档中被选中的部分 此伪元素可用的CSS属性比较少，只有`color`,`background-color`,`cursor`,`text-decoration`，`outline`,`text-shadow`
+
+
+针对::before和::after，内部有个`content`属性，其他伪元素没有`content`属性
+
+值类型 | 描述
+----- | ---
+string | 使用引号包括一段字符串，会在伪元素的内容中添加该字符串
+attr() | 调用当前元素的属性, 如href, src, data-* 等
+url()  | 引用媒体文件
+counter() | 调用计数器
+
+``` html 
+<div class="test"></div>
+
+.test {
+	position: relative;
+	width: 30px;
+	height: 30px;
+	border: 1px solid red;
+}
+
+.test::before {
+    content: url(https://d33wubrfki0l68.cloudfront.net/ce84d63e8b6c6c4899487845ca6c442cc9cb8bc2/7f4e2/img/avatar.jpg);
+    position: absolute;
+	top: 100%;
+	left: 100%;
+	display: block;
+	width: 50px;
+	height: 50px;
+    border: 1px solid red;
+}
+```
+<img src="https://ws1.sinaimg.cn/large/ad9f1193gy1fq7h4jvct1j20gs0h5dh0.jpg" style="width: 40%;
+    left: 50%;
+    position: relative;
+    transform: translate(-50%);"/>
+
+可以看到使用url来添加图片，这个图片是直接加载原图，因为是伪元素，所以修改不了这个图片的样式。
+伪元素的width和height针对的是::before/::after生成的匿名替换元素，而不是其中的`content`
+
+如果是想通过伪元素来添加图片，并且可以设置图片大小，我们可以通过给::before/::after 添加`background-imgae`属性来添加图片，并通过`background-size`等方法来设置图片的样式。
+
+下面针对::before 和 ::after的一些知识进行总结
+## ::before & ::after的一些知识总结
+通常我使用得比较多的是`::before`和`::after`这两个伪元素，而且我也习惯了写两个冒号，来分辨伪类和伪元素，没考虑兼容问题。
+
+### 伪元素怎么通过JS修改样式
+已经定义好的伪元素，实际上是不存在于文档树里的，虽然可以通过`window.getComputedStyle(test,"::after")`来取得伪元素的属性，可是是修改不了的。使用Document对象的方法（document.querySelector()等等）是不能取得该伪元素的，那我们在进行某个操作后想修改伪元素的样式，可以通过给伪类添加一个新的Class名来实现。
+
+代码如下
+
+<iframe width="100%" height="300" src="//jsfiddle.net/ChenPt/78h0udw1/15/embedded/" allowpaymentrequest allowfullscreen="allowfullscreen" frameborder="0"></iframe>
+
+这里伪元素的content属性我们是使用`attr`方法来使用当前元素的`data-content`的值。
+
+我们可以通过修改`data-content`的值来修改伪元素的content的值
+
+将上面JSfiddle `JavaScript`里注释的那行代码去掉就可以看到效果如下
+
+<iframe width="100%" height="200" src="//jsfiddle.net/ChenPt/78h0udw1/18/embedded/result/" allowpaymentrequest allowfullscreen="allowfullscreen" frameborder="0"></iframe>
+
+### 伪元素的妙用
+
+#### 结合伪类, transition, 制作过渡动画
+写了几个demo，伪元素配合CSS3的transition来实现一些过渡性的动画效果.
+
+<iframe width="100%" height="600" src="//jsfiddle.net/ChenPt/665phyg3/embedded/result/" allowpaymentrequest allowfullscreen="allowfullscreen" frameborder="0"></iframe>
+
+[代码在JSFiddle](https://jsfiddle.net/ChenPt/665phyg3/)
+
+这里只贴出效果图
+
+#### 清除浮动
+之前一般清除浮动有两种方式
+``` html
+<ul class="float-wrap">
+    <li class="item"></li>
+    <li class="item"></li>
+    <li class="item"></li>
+    <div class="clear-fix"></div>
+</ul>
+```
+``` css 
+.float-wrap{
+	/* overflow: auto; */  /* 第一种， 在父元素内使用overflow属性*/
+	width: 400px;
+	border: 1px solid red;
+	list-style-type: none;
+	text-decoration: none;
+}
+
+.item {
+	float: left;
+	width: 25%;
+	height: 100px;
+	margin-left: 6%;
+	background-color: skyblue;
+}
+
+/* 第二种， 在最后一个浮动元素后添加新元素，使用clear: both*/
+
+.clear-fix {
+    clear: both;
+    height: 0;
+    line-height: 0;
+    font-size: 0;
+}
+
+
+
+
+```
+一般我们清除浮动都是在父元素设置overflow属性或者是添加一个空白div在末尾，使用`clear:both`。
+
+而现在可以使用`::after`来对第二种方法进行改进，不用写多余的div。
+
+利用`::after`给浮动元素的**父元素**添加一个:after伪元素。
+
+``` css
+/* 第三种，利用:after给父元素添加一个:after伪元素*/
+.float-wrap::after{
+    content: "";
+    display: block;
+    width: 0;
+    height: 0;
+    visibility: hidden;
+    clear: both;  /* 就是用这个来清除浮动 */
+}
+```
+### 未完
+以后还有新的玩法的话会再补充
