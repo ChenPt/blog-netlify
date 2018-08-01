@@ -5,24 +5,23 @@ tags: [Vue, JavaScript]
 date: 2018-3-23
 ---
 
-记一次阅读Vue源码的总结.
+记一次阅读 Vue 源码的总结.
 
 <!-- more -->
 
 ## 响应式原理
 
-Vue通过响应式在修改数据的时候更新视图。
+Vue 通过响应式在修改数据的时候更新视图。
 
-在官网copy的介绍响应式原理的图.
-![](http://ww1.sinaimg.cn/large/ad9f1193gy1fpcluuphejj20xc0kugnm.jpg)
+在官网 copy 的介绍响应式原理的图.
+![](https://ww1.sinaimg.cn/large/ad9f1193gy1fpcluuphejj20xc0kugnm.jpg)
 
 流向为： model -> view
 可以对表单元素`v-model`来进行双向数据绑定.
 
-
 ### 数据劫持 & 将数据变成可观察的（Observable）
 
-``` javascript
+```javascript
 //   observer/index.js
 
 /**
@@ -44,7 +43,7 @@ export class Observer {
 
     //前面还有一些对传入构造函数的参数的类型的判断，而这里执行的话，value是个对象，从下面的walk方法可以看出
     this.walk(value)
-  }    
+  }
 
     /**
    * Walk through each property and convert them into
@@ -145,7 +144,7 @@ export function defineReactive (
       if (newVal === value || (newVal !== newVal && value !== value)) {
         return
       }
-      
+
       if (setter) {
         //如果setter存在, 执行setter函数，传入obj的this，和传入参数newVal
         setter.call(obj, newVal)
@@ -161,69 +160,68 @@ export function defineReactive (
       dep.notify()
     }
   })
-}   
-
-```
-### 小结
-
-[initData源码](https://github.com/vuejs/vue/blob/dev/src/core/instance/state.js#L107)
-``` javascript
-
-function initData (vm: Component) { 
-    //...
-    //...
-    // observe data
-    observe(data, true /* asRootData */)
 }
 ```
+
+### 小结
+
+[initData 源码](https://github.com/vuejs/vue/blob/dev/src/core/instance/state.js#L107)
+
+```javascript
+function initData(vm: Component) {
+  //...
+  //...
+  // observe data
+  observe(data, true /* asRootData */)
+}
+```
+
 `Vue`在其初始化时调用`observe`方法，为`data`对象的每个属性利用`Object.defineProperty()`方法给每个属性添加`getter`, `setter`，让每个属性都变成`observable`(可观察的).如果属性的`value`为一个对象的话，那么内部会递归调用`observe`方法来给子对象的属性创建观察者实例，使其变为`observable`的.
-(其实还会将template上的每个`v-`指令还有`computed`，`props`的数据全部转化为`observale`)
+(其实还会将 template 上的每个`v-`指令还有`computed`，`props`的数据全部转化为`observale`)
 
-当Vue进行render时，需要取数据，就会触发`getter`，进行依赖收集， （将订阅者(watcher)和观察者观察的（data）绑定起来）,修改某一个可观察属性时，就会触发该属性的`setter`，通知订阅者（watcher）进行更新操作.
-
-
-
+当 Vue 进行 render 时，需要取数据，就会触发`getter`，进行依赖收集， （将订阅者(watcher)和观察者观察的（data）绑定起来）,修改某一个可观察属性时，就会触发该属性的`setter`，通知订阅者（watcher）进行更新操作.
 
 ## 依赖（dependence）Dep
 
-这个dep对象上可以挂载多个订阅者
-``` javascript
+这个 dep 对象上可以挂载多个订阅者
+
+```javascript
 /**
  * A dep is an observable that can have multiple
  * directives subscribing to it.
  */
 /**
- * 这里我理解为，一个dep实例可以挂载多个订阅者. 
+ * 这里我理解为，一个dep实例可以挂载多个订阅者.
  */
 export default class Dep {
-  static target: ?Watcher;
-  id: number;  //用来表示
-  subs: Array<Watcher>;
+  static target: ?Watcher
+  id: number //用来表示
+  subs: Array<Watcher>
 
-  constructor () {
+  constructor() {
     this.id = uid++
     this.subs = []
   }
 
   // 将订阅者添加到subs数组
-  addSub (sub: Watcher) {
+  addSub(sub: Watcher) {
     this.subs.push(sub)
   }
 
   //从subs里移除某个订阅者
-  removeSub (sub: Watcher) {
+  removeSub(sub: Watcher) {
     remove(this.subs, sub)
   }
 
   //用与将watcher与Dep的绑定
-  depend () {
+  depend() {
     if (Dep.target) {
       Dep.target.addDep(this)
     }
   }
 
   //通知， 通知subs里的所有订阅者（watcher实例）执行update操作
-  notify () {
+  notify() {
     // stabilize the subscriber list first
     const subs = this.subs.slice()
     for (let i = 0, l = subs.length; i < l; i++) {
@@ -243,81 +241,87 @@ Dep.target = null
 const targetStack = []
 
 //这两个方法暴露给watcher使用.用于来给Dep.target指示一个watcher.
-export function pushTarget (_target: ?Watcher) {
+export function pushTarget(_target: ?Watcher) {
   if (Dep.target) targetStack.push(Dep.target)
   Dep.target = _target
 }
 
-export function popTarget () {
+export function popTarget() {
   Dep.target = targetStack.pop()
 }
 ```
+
 ### 小结
 
-读取数据，触发`observable` `data`的getter，通过`Dep`将data与订阅者添加一个依赖关系。一个data对应一个`Dep`实例，其有一个uniqueID，用来标识，其内部维护一个`subs`订阅者数组。当data改变，触发setter，会通过`Dep`实例来给subs里的所有订阅者通知更新。
+读取数据，触发`observable` `data`的 getter，通过`Dep`将 data 与订阅者添加一个依赖关系。一个 data 对应一个`Dep`实例，其有一个 uniqueID，用来标识，其内部维护一个`subs`订阅者数组。当 data 改变，触发 setter，会通过`Dep`实例来给 subs 里的所有订阅者通知更新。
 
 ## Watcher 订阅者
+
 订阅者主要作用：
-1. 通过Dep（依赖）来为每个数据添加订阅者，当数据变化时，会通过`Dep`来通知订阅者进行`update`操作.
-2. 创建订阅者实例会传入一个cb函数，当update执行完后会执行这个cb函数。cb函数是用来执行re-render操作的，用于将新数据重新渲染到view上.
+
+1.  通过 Dep（依赖）来为每个数据添加订阅者，当数据变化时，会通过`Dep`来通知订阅者进行`update`操作.
+2.  创建订阅者实例会传入一个 cb 函数，当 update 执行完后会执行这个 cb 函数。cb 函数是用来执行 re-render 操作的，用于将新数据重新渲染到 view 上.
 
 这里就贴我自己写的`watch`
-``` javascript
+
+```javascript
 import Dep from './dep'
 
 export default class Watcher {
-    constructor(vm, exp, cb) {
-        this.vm = vm  //在vue源码里，这里是一个component
-        this.exp = exp //某个属性
-        this.cb = cb
-        this.value = this.get()
+  constructor(vm, exp, cb) {
+    this.vm = vm //在vue源码里，这里是一个component
+    this.exp = exp //某个属性
+    this.cb = cb
+    this.value = this.get()
+  }
+
+  /**
+   * 调度者接口，当订阅数据更新时执行
+   */
+  update() {
+    console.log('订阅者里的update操作.')
+    this.run()
+  }
+
+  //用来触发getter获取到最新的新值.
+  get() {
+    Dep.target = this
+    let value = this.vm[this.exp] //触发key的getter，将自己添加为订阅者.
+    //添加完后
+    Dep.target = null
+
+    return value
+  }
+
+  /**
+   * 调度者工作接口，由调度者接口调用
+   */
+  // vue源码里 run执行后执行cb函数，视图重新渲染
+  run() {
+    let value = this.get()
+    console.log('run: ', value)
+    let oldVal = this.value
+
+    if (oldVal !== value) {
+      this.value = value
+      this.cb.call(this.vm, value, oldVal)
+      console.log('执行完毕回调')
     }
-
-    /**
-     * 调度者接口，当订阅数据更新时执行
-    */
-    update() {
-        console.log('订阅者里的update操作.');
-        this.run()
-    }
-
-    //用来触发getter获取到最新的新值.
-    get() {
-        Dep.target = this
-        let value = this.vm[this.exp] //触发key的getter，将自己添加为订阅者.
-        //添加完后
-        Dep.target = null;
-
-        return value;
-
-    }
-
-    /**
-     * 调度者工作接口，由调度者接口调用
-    */
-    // vue源码里 run执行后执行cb函数，视图重新渲染
-    run() {
-        let value = this.get()
-        console.log('run: ', value)
-        let oldVal = this.value
-
-        if(oldVal !== value) {
-            this.value = value
-            this.cb.call(this.vm, value, oldVal)
-            console.log("执行完毕回调");
-        }
-    }
+  }
 }
 ```
-### 对三者的一个小结
-![](http://ww1.sinaimg.cn/large/ad9f1193gy1fpcluuphejj20xc0kugnm.jpg)
 
-首先是组件渲染函数，进行一次render操作就会取到所有的数据，这时就会触发getter，(这里只取到了视图渲染需要的数据触发getter),从而进行依赖收集，`Data`可以看成与`Watcher`绑定在一起，但是我们知道他们中间是有个`Dep`在维护的他们的关系的，当触发getter时，将watcher添加到Dep的`subs`数组。数据改变时，触发setter，`Dep`通知`subs`里的所有watcher【你订阅的数据改变了】，watcher会触发update，而实际工作是由`run`来执行，判断新旧数据是否一致，如果数据真的改变了，则会触发watcher实例的cb函数，继续将工作交给compiler来做，最终结果会重新渲染视图（一般是渲染部分视图），因为vue也采用了virtual DOM技术，（用JS对象来模仿DOM节点，避免多次直接DOM操作，提高性能）监听到VNode变化时，会先通过diff算法，判断初始虚拟DOM树和改变后的虚拟DOM树是否有差别，具体哪里发生改变，思想是修改尽量少的DOM，进行尽量少的DOM操作，最后把发生改变的虚拟DOM元素应用到真实DOM上.（`patch`操作）
+### 对三者的一个小结
+
+![](https://ww1.sinaimg.cn/large/ad9f1193gy1fpcluuphejj20xc0kugnm.jpg)
+
+首先是组件渲染函数，进行一次 render 操作就会取到所有的数据，这时就会触发 getter，(这里只取到了视图渲染需要的数据触发 getter),从而进行依赖收集，`Data`可以看成与`Watcher`绑定在一起，但是我们知道他们中间是有个`Dep`在维护的他们的关系的，当触发 getter 时，将 watcher 添加到 Dep 的`subs`数组。数据改变时，触发 setter，`Dep`通知`subs`里的所有 watcher【你订阅的数据改变了】，watcher 会触发 update，而实际工作是由`run`来执行，判断新旧数据是否一致，如果数据真的改变了，则会触发 watcher 实例的 cb 函数，继续将工作交给 compiler 来做，最终结果会重新渲染视图（一般是渲染部分视图），因为 vue 也采用了 virtual DOM 技术，（用 JS 对象来模仿 DOM 节点，避免多次直接 DOM 操作，提高性能）监听到 VNode 变化时，会先通过 diff 算法，判断初始虚拟 DOM 树和改变后的虚拟 DOM 树是否有差别，具体哪里发生改变，思想是修改尽量少的 DOM，进行尽量少的 DOM 操作，最后把发生改变的虚拟 DOM 元素应用到真实 DOM 上.（`patch`操作）
 
 再看上图. `touch`
 
 在源码`watcher.js`也看到`touch`，关于这个我自己是这样理解的.
-``` javascript
+
+```javascript
 //observer/watcher.js
 
 // ...
@@ -325,7 +329,7 @@ export default class Watcher {
 // "touch" every property so they are all tracked as
 // dependencies for deep watching
 if (this.deep) {
-    traverse(value)
+  traverse(value)
 }
 ```
 
@@ -333,12 +337,11 @@ if (this.deep) {
 
 这里应该是来对值为`object` or `array`的进一步处理, 触发每个深层对象的依赖.
 
-图中的`touch`也可以理解为访问'touch' every needed property，多了个needed，就是访问所有需要用到的属性. 
-
+图中的`touch`也可以理解为访问'touch' every needed property，多了个 needed，就是访问所有需要用到的属性.
 
 ## 自己的实现
 
-模仿Vue完成小作业， 因为还没有去看Vue的模版渲染，所以就只实现了Observer、Dep、Watcher这三者的逻辑关系，最终结果一个简单的观察订阅者模式的demo。
+模仿 Vue 完成小作业， 因为还没有去看 Vue 的模版渲染，所以就只实现了 Observer、Dep、Watcher 这三者的逻辑关系，最终结果一个简单的观察订阅者模式的 demo。
 
 [demo in github]()
 
@@ -353,12 +356,9 @@ if (this.deep) {
 也是自己第一篇源码相关的总结，学习到不少，这篇主要还是给源码根据自己的理解添加中文注释，可能由很多地方有误。
 
 ## link
+
 [Vue - github](https://github.com/vuejs/vue/blob/dev/src/core/observer)
 
 [柒陌 - github](https://github.com/answershuto/learnVue/blob/master/docs/%E4%BB%8E%E6%BA%90%E7%A0%81%E8%A7%92%E5%BA%A6%E5%86%8D%E7%9C%8B%E6%95%B0%E6%8D%AE%E7%BB%91%E5%AE%9A.MarkDown)
 
 [segmentfault](https://segmentfault.com/a/1190000006599500#articleHeader0)
-
-
-
-
