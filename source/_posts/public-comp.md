@@ -1,11 +1,11 @@
 ---
-title: 开发一个组件库
+title: 记搭建一个Vue组件库
 category: webpack
-tags: [webpack, 插件, npm]
+tags: [webpack, library, npm]
 date: 2018-8-02
 ---
 
-组内负责的几个项目都有一些可复用的公共组件，所以就着手搭建了个公共组件开发的，第一次开发`library`，所以是参考着`iview`的配置来搭建的。记录如何使用`webpack4`搭建一个`library`的脚手架
+组内负责的几个项目都有一些一样的公共组件，所以就着手搭建了个公共组件开发的，第一次开发 library，所以是参考着`iview`的配置来搭建的。记录如何使用`webpack4`搭建一个`library`的脚手架
 
 <!-- more -->
 
@@ -23,6 +23,8 @@ webpack4 会另写一篇总结
 
 ## library 结构
 
+我写的 library 的目录结构如下，仅供参考，主要是模仿 `iview` 的结构，其中部分配置参考了 `vue-cli`的 webpack 配置文件。
+
 ```
 ├─build
 │      build.js  // 用于执行构建
@@ -33,7 +35,7 @@ webpack4 会另写一篇总结
 │      webpack.prod.conf.js  // 用于生成example文件的打包代码，这个其实是没有必要的.
 │
 ├─dist
-│   └─example // 生成的打包文件夹，因为现在习惯打包后用`anywhere`本地预览下打包后文件的资源加载是否有误
+│   └─example // example生成的打包文件夹，因为现在习惯打包后用`anywhere`本地预览下打包后文件的资源加载是否有误
 │     hbf.min.js // library 文件
 │
 ├─example
@@ -42,7 +44,7 @@ webpack4 会另写一篇总结
 │      main.js
 │
 ├─lib
-│  │  index.js
+│  │  index.js  // 全量引入公共组件，并暴露出来，包含install方法可供vue引入使用该插件
 │  │  README.md
 │  │  
 │  └─components // 公共组件
@@ -50,24 +52,16 @@ webpack4 会另写一篇总结
 ├─package.json  // 项目包依赖
 ```
 
-对于需要打包成 library 的配置文件来说，output 选项需要设置 library
+## 经过 webpack 编译后
 
-```javascript
-// webpack.dist.pord.conf.js
-
-output: {
-  path: path.resolve(__dirname, '../dist'),
-  filename: 'hbf.min.js',
-  library: 'hbf',
-  libraryTarget: 'umd'
-},
-```
-
-先来了解下 webpack 编译后的代码。
+为了好理解 library，先来了解下 webpack 编译后的代码。
 
 ```javascript
 // webpack编译后的代码
 
+/*
+* @param {Array} modules
+*/
 ;(function(modules) {
   function __webpack_require__(moduleId) {
     var module = {
@@ -75,6 +69,7 @@ output: {
       l: false,
       exports: {}, // 作为结果返回.
     }
+    // 调用modules数组的某个元素（类型为函数）
     modules[moduleId].call(
       module.exports,
       module,
@@ -90,7 +85,7 @@ output: {
 ])
 ```
 
-webpack 编译后的代码的整体结构就是一个简单的`IIFE函数`，接受一个 `modules: Array`参数。
+webpack 编译后的代码的整体结构就是一个`IIFE函数`，接受一个 `modules: Array`参数。
 
 对于模块处理，无论是 `ES Module` 的 `import` 还是 `commonjs` 的 `require` 都转化为`__webpack_require__` 这个函数来引入模块。
 
@@ -98,29 +93,58 @@ webpack 编译后的代码的整体结构就是一个简单的`IIFE函数`，接
 
 `return __webpack_require__(0)`
 
-从入口文件，moduleId 为 0，开始引入依赖模块，最后返回入口模块的 `module.exports`
+从入口文件开始，逐个引入依赖模块，最后返回入口模块的 `module.exports`
+
+此时这个编译后的 js 文件，是无法被其他模块所引用的，只在当前作用域内有效， `webpack` 就提供了创建 library 的方式，就是在`output`里定义`library` 和 `libraryTarget`。使得构建完的 js 可以供其他模块引入使用。
+
+对于作为一个 library 使用的项目来说，output 选项需要设置 library
+
+```javascript
+// webpack.dist.pord.conf.js
+
+output: {
+  path: path.resolve(__dirname, '../dist'),
+  publicPath: '/dist/',
+  filename: 'hbf.min.js',
+  library: 'hbf',
+  libraryTarget: 'umd'
+},
+```
 
 `library` 可以是字符串，也可以是对象，(对象仅限于 `libraryTarget` 的值为 `umd` 的情况下使用)
 
 ```javascript
 output: {
   library: {
-    root: Hbf,  // 暴露给
-    commonjs: hbf. // 入口模块的module.exports 赋值给 exports['hbf']
-    commonjs2: hbf,  // 入口模块的module.exports 赋值给 module.exports
+    root:'Hbf',  // 暴露给
+    commonjs: 'hbf'. // 入口模块的module.exports 赋值给 exports['hbf']
+    commonjs2: 'hbf',  // 入口模块的module.exports 赋值给 module.exports
   }
 }
 ```
 
-我们在引用别人的库的时候，通常都是可以通过多种方法引入的，比如 `<script>` 标签引入，通过 `commonJS` 引入，通过 `ES6 Module` 引入。
+`commonjs` 和 `commonjs2` 的区别。
+
+`commonjs` 规范就是定义了一个 `exports` 对象，而 `nodejs` 在实现的时候，在 `commonjs` 规范的前提下做了一些扩展，定义了 `module.exports` ，从而也叫这种为 `commonjs2` 规范。
+
+我们在引用别人的库的时候，通常都是可以通过多种方法引入的，比如 `<script>` 标签引入，通过 `commonJS`模块 引入，通过 `ES6 Module` 引入。
 
 `libraryTarget`设置为`umd`(通用模块规范)的话，则打包后可以通过多种模块加载的方法加载 library，具有高兼容性。
 
-## 依赖问题
+## library 的依赖问题
 
 如果我们的 library 是基于某某库的基础上开发的，比如说写一个基于`vue`的 UI 组件库，在开发的这个组件库的时候，我们需要引入`vue`，如果使用这个组件库的用户本身就已经引入了`vue`，那么`vue`就会被引入并打包两次，所以我们在开发一个`library`的时候，对于一些所依赖的模块，可以由引入`library`的使用者提供。所以我们需要将依赖的模块在 library 的打包构建中去除。
 
-通过设置 `externals` 达到目的
+`externals` 的作用，防止将某些 `import` 的包打包到 bundle 中，而是在运行时再去外部获取这些扩展依赖。
+
+通过设置 `externals`，从输出的 `bundle` 中排除 `vue` 和 `iview`。
+
+这些外部依赖可能是以下的任何一种形式。
+
+- `root` 全局变量访问
+- `commonjs` 作为一个`commonjs`模块引入
+- `commonjs2` 与`commonjs`类似，不过导出的是 `module.exports`
+- `amd` 使用`amd`模块规范引入
 
 ```javascript
 // webpack.dist.pord.conf.js
@@ -141,7 +165,7 @@ externals: {
 },
 ```
 
-另外在 package.json 加多一个`peerDependencies`字段，作用是约定`library`所依赖的库的版本号，在使用者下载使用`library`的时候，如果所依赖的 iview 和 vue 的版本号不对，就会发出警告。
+另外在 package.json 加多一个`peerDependencies`字段，作用是约定`library`所依赖的库的版本号，在使用者下载使用`library`的时候，如果所依赖的 `iview` 和 `vue` 的版本号不对，就会发出警告。
 
 ```json
 "peerDependencies": {
@@ -150,9 +174,106 @@ externals: {
 },
 ```
 
-对于 vue 的插件，需要有一个 install 方法，在暴露含有 install 方法的对象时，使用的是 `module.exports`，引用的时候报错`Uncaught TypeError: Cannot assign to read only property 'exports' of object '#<Object>'`。
+对于这两个依赖，写到开发环境依赖中 ，不然安装时，会在库的目录下安装`vue` 和 `iview`，这也不符合让 `library` 的引用者提供 `library` 的依赖这个想法。
 
-因为我测试用的项目关闭了 `babel` 对 `ES Module` 的编译，通常情况下，没有手动关闭的话，`babel` 会将 `ES6 Module` 编译转换成 `commonjs` 规范。所以在关闭了`module`的转换的情况下，由于库的输出使用的是 `commonjs` 规范的 `module.exports`，而引入库使用的是 `import`，所以产生了报错，我将库的导出写成`export`关键字，就没报错了。
+## vue 插件库/ 组件库
+
+对于 vue 的插件库 / 组件库来说，如果想要全局引入的话，需要有一个`install`方法。install 内部逻辑就是通过参数传进来的`vue`对象，注册所有组件。然后最后将所有公共组件连同`install`方法组成一个新对象暴露出去。
+
+```javascript
+// 引入公共组件
+import publicMenu from './components/public-menu'
+import tablePage from './components/table-page'
+import sliderCustom from './components/slider-custom'
+
+const components = {
+  publicMenu,
+  tablePage,
+  sliderCustom,
+}
+
+const Hbf = Object.assign({}, components)
+// 定义install方法
+const install = function(Vue, opts) {
+  if (install.installed) return
+  // 注册公共组件
+  Object.keys(components).forEach(component => {
+    Vue.component(component, component)
+  })
+}
+
+Hbf.install = install
+export default Hbf
+```
+
+在暴露含有 install 方法的对象时，一开始使用的是 `module.exports`，引用 library 的时候报错`Uncaught TypeError: Cannot assign to read only property 'exports' of object '#<Object>'`。
+
+![](https://ws1.sinaimg.cn/large/ad9f1193gy1ftwbbi4fb0j20hm0903yv.jpg)
+
+因为我测试用的项目关闭了 `babel` 对 `ES Module` 的编译，通常情况下，没有手动关闭的话，`babel` 会将 `ES6 Module` 编译转换成 `commonjs` 规范。所以在关闭了`module`的转换的情况下，由于库的输出使用的是 `commonjs` 规范的 `module.exports`，而引入库使用的是 ES6 模块规范的`import`关键字，所以产生了报错，我将库的导出写成`export`关键字，就没报错了。
+
+以后书写某一模块的导入导出，还是使用同一种规范的，不要混用。
+
 我也了解到了现在大多数库，都是用的 `commonjs` 规范，由于 `webpack` 的 `tree-shaking` 只对 `ES Module`起作用。
 
-所以库的模块规范可以使用两种，利用 `package.json`的 `main` 和 `module` 字段分别定义库的两种规范的入口文件。 `main` 使用的是 `commonjs` 规范的文件，而 `module` 是使用 `ES6 module` 的文件。所以采用了`module`规范的库的使用也可以进行利用`webpack` 进行 `tree-shaking`，去除未引用的代码。
+所以库的模块规范可以使用两种，利用 `package.json`的 `main` 和 `module` 字段分别定义库的两种规范的入口文件。 `main` 使用的是 `commonjs` 规范语法书写的文件，而 `module` 是使用 `ES6 module` 语法书写的文件，**`module`字段目前还是一个提案**。所以采用了 `ES2015` 模块语法的库的，当我们只使用到 `library`的部分代码，则可以利用`webpack` 进行 `tree-shaking`，去除未引用的代码，减少打包文件体积。
+
+目前这个项目还是使用的`ES2015 Module`去开发。
+
+## 发布 npm 包
+
+首先就是需要注册一个 npm 账号。
+
+如果之前使用的是淘宝镜像的话，需要先切回 npm 官方源。不然是发不了包的。
+
+`npm config set registry https://registry.npmjs.org/`
+
+然后打开命令行，执行`npm login`，然后输入你的账号信息。
+
+可以配置`.npmignore` 忽略一些不需要上传的文件，写法跟`.gitignore` 相同。
+
+需要保证项目有正确的`package.json`文件和`README.md`文件
+
+然后执行`npm publish`进行发包。
+
+发完包就可以切回淘宝镜像源
+
+`npm config set registry https://registry.npm.taobao.org`
+
+## 按需引用 / 全量引用
+
+可以像使用其他 vue 插件库/组件库一样使用。
+
+```javascript
+import hbf from 'hbf-public-components'
+
+// 使用use方法触发hbf的intall方法，注册全部组件
+Vue.use(hbf)
+```
+
+```javascript
+import { publicMenu } from 'hbf-public-components'
+```
+
+按需引用，需要一个插件支持，`babel-plugin-import`。
+
+`yarn add babel-plugin-import -D`
+
+修改`.babelrc`文件，
+
+```json
+"plugins": [
+  ["import", {
+    "libraryName": "hbf-public-components",
+    "libraryDirectory": "lib/components"
+  }]
+],
+```
+
+## 总结
+
+其实如果对于一个不是很稳定，需要一直`迭代更新`的`公用组件库`来说，使用 npm 包的话，会比较不方便，经常更新的公共组件代码可以使用`Git subtree`来维护，可以等到一定地步之后，公共组件库稳定下来之后再考虑发布一个 npm 包。
+
+项目地址： https://github.com/huya-base-fed/public-components
+
+npm 地址：https://www.npmjs.com/package/hbf-public-components
