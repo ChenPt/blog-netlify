@@ -5,7 +5,7 @@ tags: [webpack, library, npm]
 date: 2018-8-02
 ---
 
-组内负责的几个项目都有一些一样的公共组件，所以就着手搭建了个公共组件开发的，第一次开发 library，所以是参考着`iview`的配置来搭建的。记录如何使用`webpack4`搭建一个`library`的脚手架
+组内负责的几个项目都有一些一样的公共组件，所以就着手搭建了个公共组件开发脚手架，第一次开发 library，所以是参考着`iview`的配置来搭建的。记录如何使用`webpack4`搭建一个`library`的脚手架
 
 <!-- more -->
 
@@ -226,9 +226,11 @@ export default Hbf
 
 如果之前使用的是淘宝镜像的话，需要先切回 npm 官方源。不然是发不了包的。
 
-`npm config set registry https://registry.npmjs.org/`
+打开命令行
 
-然后打开命令行，执行`npm login`，然后输入你的账号信息。
+切换官方源 `npm config set registry https://registry.npmjs.org/`
+
+执行`npm login`，然后输入你的账号信息。
 
 可以配置`.npmignore` 忽略一些不需要上传的文件，写法跟`.gitignore` 相同。
 
