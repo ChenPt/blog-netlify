@@ -107,6 +107,51 @@ console.log(a) // 1
 
 但是需要记住的是，一个模块暴露提供的值，不能通过手动赋值的方式改变其的值，会报错`Assignment to constant variable`，只有其内部模块的方法可以修改值，这也是一种特殊的情况，其他情况下我们都可以将一个模块的暴露的值当成`const`常量，其引入后不可以被修改。
 
+## 动态加载
+
+`require` 在运行时加载模块，所以根据一些条件来进行动态加载，
+而`import`在编译阶段会先于其他语句执行，所以是没办法进行运行时加载的。
+
+```javascript
+// require
+// 正常
+const test = require(`${name}.js`)
+// 正常
+if(count > 10) {
+  const test = require(`${name}.js`)
+}
+
+// import
+ // 报错
+import test from `${name}.js`
+// 报错
+if(count > 10) {
+  import test from './test.js'
+}
+```
+
+### import()
+
+引入了`import()` 可以进行按需加载，动态加载
+
+`import()` 返回一个 promise 对象。可以使用 `async/await` 语法。
+
+```javascript
+import('./test.js').then(module => console.log)
+
+//条件加载
+if(count === 10) {
+  const test = async () => {
+    await import('./test.js')
+  }
+}
+
+// 动态名字
+import(`${name}.js`).then(...)
+```
+
+当 JS 引擎运行到此语句时就会对`test.js`进行加载。
+
 ## Node.js
 
-现在 Node 对 ES Module 的支持还不是很理想，还在测试阶段。所以在`Node`环境下还是继续使用`CommonJS`模块规范。
+现在 Node 对 ES Module 的支持还不是很理想，还在测试阶段。所以在`Node`环境下还是继续使用`CommonJS`模块规范吧。

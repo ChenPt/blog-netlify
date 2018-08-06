@@ -116,10 +116,10 @@ output: {
 ```javascript
 output: {
   library: {
-    root:'Hbf',  // 暴露给
-    commonjs: 'hbf'. // 入口模块的module.exports 赋值给 exports['hbf']
-    commonjs2: 'hbf',  // 入口模块的module.exports 赋值给 module.exports
-  }
+    root:'Hbf',  // 暴露给全局变量，window.Hbf进行调用
+    commonjs: 'hbf-public-components'
+  },
+  libraryTarget: 'umd'
 }
 ```
 
@@ -191,19 +191,27 @@ const components = {
   tablePage,
   sliderCustom,
 }
-
 const Hbf = Object.assign({}, components)
-// 定义install方法
 const install = function(Vue, opts) {
   if (install.installed) return
-  // 注册公共组件
+
   Object.keys(components).forEach(component => {
     Vue.component(component, component)
   })
 }
 
+// 用于script标签引入
+if (typeof window !== 'undefined' && window.Vue) {
+  install(window.Vue)
+}
+
+// 将install方法赋给Hbf对象
 Hbf.install = install
+
+// 输出default变量，用于全量引入，也可以在引入的时候选择使用 * 来全量引入
 export default Hbf
+// 输出各个组件，用于按需引入
+export { publicMenu, tablePage, sliderCustom }
 ```
 
 在暴露含有 install 方法的对象时，一开始使用的是 `module.exports`，引用 library 的时候报错`Uncaught TypeError: Cannot assign to read only property 'exports' of object '#<Object>'`。
@@ -214,9 +222,9 @@ export default Hbf
 
 以后书写某一模块的导入导出，还是使用同一种规范的，不要混用。
 
-我也了解到了现在大多数库，都是用的 `commonjs` 规范，由于 `webpack` 的 `tree-shaking` 只对 `ES Module`起作用。`webpack` 的 `tree-shaking` 实际上是由`Uglylify`来实现的。
+我也了解到了现在大多数库，都是用的 `commonjs` 规范，由于 `webpack` 的 `tree-shaking` 只对 `ES Module`起作用。而`webpack` 的 `tree-shaking` 实际上是由`Uglylify`来实现的。
 
-所以库的模块规范可以使用两种，利用 `package.json`的 `main` 和 `module` 字段分别定义库的两种规范的入口文件。 `main` 使用的是 `commonjs` 规范语法书写的文件，而 `module` 是使用 `ES6 module` 语法书写的文件，**`module`字段目前还是一个提案**。所以采用了 `ES2015` 模块语法的库的，当我们只使用到 `library`的部分代码，则可以利用`webpack` 进行 `tree-shaking`，去除未引用的代码，减少打包文件体积。
+所以库的模块规范可以使用两种，利用 `package.json`的 `main` 和 `module` 字段分别定义库的两种模块规范的入口文件。 `main` 使用的是 `commonjs` 规范语法书写的文件，而 `module` 是使用 `ES6 module` 语法书写的文件，**`module`字段目前还是一个提案**。所以采用了 `ES2015` 模块语法的库的，当我们只使用到 `library`的部分代码，则可以利用`webpack` 进行 `tree-shaking`，去除未引用的代码，减少打包文件体积。
 
 ## 发布 npm 包
 
@@ -240,7 +248,24 @@ export default Hbf
 
 `npm config set registry https://registry.npm.taobao.org`
 
-## 按需引用 / 全量引用
+## 引用组件库
+
+### Script 标签引入
+
+一开始是将 JS 文件放在本地测试，发现在`HTML`文件的第一行就报错，`Unexpected token <`，[StackOverflow](https://stackoverflow.com/questions/31529446/unexpected-token-in-first-line-of-html)说的原因是引入路径不正确，所以我就把 JS 文件放到 CDN 上了，
+
+```html
+<script src="http://osuuzm0m8.bkt.clouddn.com/hbf.min.js"></script>
+<script>  
+  console.log(window.Hbf) // 会看到你导出的对象
+</script>
+```
+
+输出
+
+![](https://ws1.sinaimg.cn/large/ad9f1193gy1fu05614vx2j20i706njru.jpg)
+
+### 全量引用
 
 可以像使用其他 vue 插件库/组件库一样使用。
 
@@ -251,13 +276,23 @@ import hbf from 'hbf-public-components'
 Vue.use(hbf)
 ```
 
+如果是没有导出`default`变量，则使用另外一种方式全量引入
+
+```javascript
+import * as hbf from 'hbf-public-components'
+```
+
+### 按需引用
+
 ```javascript
 import { publicMenu } from 'hbf-public-components'
 ```
 
 按需引用，如果 library 使用的是`ES2015 Module`规范，则不需要安装任何插件，webpack 会对其进行`tree-shaking`，去除未引用的代码。
 
-如果是使用 `commonjs` 规范的 library 则需要一个插件支持。`babel-plugin-import`。
+前面提过，`webpack`的`tree-shaking`是由`Uglylify`插件实现的，我在开发环境下，没有启用`Uglylify`来压缩代码，所以查看模块打包图，会发现整个库都被引入了，虽然我只引入了一个组件。`webpack4`在生产环境下，才会进行`tree-shaking`，设置`mode`的值为`production`就会开启生产环境下的优化。
+
+如果是使用 `commonjs` 规范的 library 则需要一个插件支持，[babel-plugin-import](https://github.com/ant-design/babel-plugin-import)。该插件是`ant`官方开发的。许多 UI 组件库的按需引入也是依赖于这个插件。
 
 安装
 
@@ -279,6 +314,8 @@ import { publicMenu } from 'hbf-public-components'
 其实如果对于一个不是很稳定，需要一直`迭代更新`的`公用组件库`来说，使用 npm 包的话，会比较不方便，经常更新的公共组件代码可以使用`Git subtree`（[教程](https://tech.youzan.com/git-subtree/)）来维护，可以等到一定地步之后，公共组件库稳定下来之后再考虑发布一个 npm 包。
 
 而开发一个组件库，也可以使用 [rollup.js](https://www.rollupjs.com/guide/zh) 来搭脚手架，`rollup.js` 默认使用的就是 `ES2015 Module`，可以进行静态分析，去除未引用的代码，`tree-shaking` 也是 `rollup.js` 先提出的。`Rollup`相比较于`Webpack`，更适合用于构建`library`，`Vue.js`就是使用 `Rollup` 构建的。`Webpack` 在代码分割这方面比较有优势，所以`webpack` 相对来说比较适合构建应用程序，不过使用 webpack 构建 library 也是可以的。
+
+这个项目也可以用做 webpack 构建 library 的通用脚手架。下次再尝试`Rollup`构建 library
 
 项目地址： https://github.com/huya-base-fed/public-components
 
