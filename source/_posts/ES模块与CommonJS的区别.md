@@ -1,10 +1,9 @@
 ---
+title: CommonJS 模块规范与 ES Module 的差异
 category: ECMAScript
 tags: [Module, CommonJS]
 date: 2018-08-06
 ---
-
-# CommonJS 模块规范与 ES Module 的差异
 
 在 ES Module 还未全面支持的时候，我们写 ES Module 的语法，`import`，`export`需要通过`babel`来编译，转化成`CommonJS`规范。现在由于`ES Module`普及度已经够广了。在复习的过程中也学习到了两者的区别。
 
