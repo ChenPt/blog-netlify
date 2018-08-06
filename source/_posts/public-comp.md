@@ -5,7 +5,7 @@ tags: [webpack, library, npm]
 date: 2018-8-02
 ---
 
-组内负责的几个项目都有一些一样的公共组件，所以就着手搭建了个公共组件开发脚手架，第一次开发 library，所以是参考着`iview`的配置来搭建的。记录如何使用`webpack4`搭建一个`library`的脚手架
+组内负责的几个项目都有一些一样的公共组件，所以就着手搭建了个公共组件开发脚手架，第一次开发 library，所以是参考着 [iview](https://github.com/iview/iview) 的配置来搭建的。记录如何使用`webpack4`搭建一个`library`的脚手架
 
 <!-- more -->
 
@@ -52,7 +52,7 @@ webpack4 会另写一篇总结
 ├─package.json  // 项目包依赖
 ```
 
-## 经过 webpack 编译后
+## 经过 webpack 编译后的代码
 
 为了好理解 library，先来了解下 webpack 编译后的代码。
 
@@ -214,11 +214,9 @@ export default Hbf
 
 以后书写某一模块的导入导出，还是使用同一种规范的，不要混用。
 
-我也了解到了现在大多数库，都是用的 `commonjs` 规范，由于 `webpack` 的 `tree-shaking` 只对 `ES Module`起作用。
+我也了解到了现在大多数库，都是用的 `commonjs` 规范，由于 `webpack` 的 `tree-shaking` 只对 `ES Module`起作用。`webpack` 的 `tree-shaking` 实际上是由`Uglylify`来实现的。
 
 所以库的模块规范可以使用两种，利用 `package.json`的 `main` 和 `module` 字段分别定义库的两种规范的入口文件。 `main` 使用的是 `commonjs` 规范语法书写的文件，而 `module` 是使用 `ES6 module` 语法书写的文件，**`module`字段目前还是一个提案**。所以采用了 `ES2015` 模块语法的库的，当我们只使用到 `library`的部分代码，则可以利用`webpack` 进行 `tree-shaking`，去除未引用的代码，减少打包文件体积。
-
-目前这个项目还是使用的`ES2015 Module`去开发。
 
 ## 发布 npm 包
 
@@ -257,7 +255,11 @@ Vue.use(hbf)
 import { publicMenu } from 'hbf-public-components'
 ```
 
-按需引用，需要一个插件支持，`babel-plugin-import`。
+按需引用，如果 library 使用的是`ES2015 Module`规范，则不需要安装任何插件，webpack 会对其进行`tree-shaking`，去除未引用的代码。
+
+如果是使用 `commonjs` 规范的 library 则需要一个插件支持。`babel-plugin-import`。
+
+安装
 
 `yarn add babel-plugin-import -D`
 
@@ -274,8 +276,12 @@ import { publicMenu } from 'hbf-public-components'
 
 ## 总结
 
-其实如果对于一个不是很稳定，需要一直`迭代更新`的`公用组件库`来说，使用 npm 包的话，会比较不方便，经常更新的公共组件代码可以使用`Git subtree`来维护，可以等到一定地步之后，公共组件库稳定下来之后再考虑发布一个 npm 包。
+其实如果对于一个不是很稳定，需要一直`迭代更新`的`公用组件库`来说，使用 npm 包的话，会比较不方便，经常更新的公共组件代码可以使用`Git subtree`（[教程](https://tech.youzan.com/git-subtree/)）来维护，可以等到一定地步之后，公共组件库稳定下来之后再考虑发布一个 npm 包。
+
+而开发一个组件库，也可以使用 [rollup.js](https://www.rollupjs.com/guide/zh) 来搭脚手架，`rollup.js` 默认使用的就是 `ES2015 Module`，可以进行静态分析，去除未引用的代码，`tree-shaking` 也是 `rollup.js` 先提出的。`Rollup`相比较于`Webpack`，更适合用于构建`library`，`Vue.js`就是使用 `Rollup` 构建的。`Webpack` 在代码分割这方面比较有优势，所以`webpack` 相对来说比较适合构建应用程序，不过使用 webpack 构建 library 也是可以的。
 
 项目地址： https://github.com/huya-base-fed/public-components
 
 npm 地址：https://www.npmjs.com/package/hbf-public-components
+
+[关于模块规范，以及 webpack，babel 是如何编译转换模块的文章](https://juejin.im/post/5a2e5f0851882575d42f5609)
