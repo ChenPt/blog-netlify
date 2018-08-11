@@ -14,7 +14,7 @@ date: 2018-4-18
 
 而想在hexo博客中书写公式之类的东西，需要使用MathJax这个JS库将LaTeX公式转化为[MathML](https://developer.mozilla.org/zh-CN/docs/Web/MathML)。MathML是W3C提出的。
 
-对于NexT主题来说，可以使用MathJax，不过默认是没开启的，需要去theme文件夹下的_config文件启用MathJax。还有就是每篇使用到mathjaxd的文章开头都需要填写`mathjax: true`
+对于NexT主题来说，可以使用MathJax，不过默认是没开启的，需要去theme文件夹下的_config文件启用MathJax。还有就是每篇使用到mathjax的文章开头都需要填写`mathjax: true`
 ``` 
 ---
 title: xxx
