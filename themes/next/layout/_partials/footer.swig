@@ -20,3 +20,6 @@
   </a>
 </div>
 {% endif %}
+<div>
+  <a href="http://www.miitbeian.gov.cn">粤ICP备17101772号-1</a>
+</div>
