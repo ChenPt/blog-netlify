@@ -19,7 +19,7 @@ permalink: :title/
 permalink_defaults:
 
 #baidu_analytics
- baidu_analytics: 4d90a1befdad3fba1543fec4a2fe0c07
+baidu_analytics: 4d90a1befdad3fba1543fec4a2fe0c07
 # Directory
 source_dir: source
 public_dir: public
